@@ -4,6 +4,8 @@ Blazor Server + ASP.NET Core 8 + PostgreSQL + Redis. Регистрация, в�
 
 ## Запуск
 
+Инструкция для Windows: [docs/SETUP.md](docs/SETUP.md)
+
 ```bash
 docker compose up -d
 dotnet tool restore
@@ -11,7 +13,7 @@ dotnet run --project src/OskTech.Migrator
 dotnet run --project src/OskTech.Host
 ```
 
-Приложение: https://localhost:5001 (см. launchSettings)
+PostgreSQL в Docker: порт **5433**. Приложение: **https://localhost:7079**
 
 ## Тесты
 

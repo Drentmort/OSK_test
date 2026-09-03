@@ -4,7 +4,11 @@ using Microsoft.Extensions.Hosting;
 using OskTech.Infrastructure;
 using OskTech.Infrastructure.Persistence;
 
-var builder = Host.CreateApplicationBuilder(args);
+var builder = Host.CreateApplicationBuilder(new HostApplicationBuilderSettings
+{
+    ContentRootPath = AppContext.BaseDirectory,
+    Args = args
+});
 builder.Services.AddInfrastructure(builder.Configuration);
 
 using var host = builder.Build();
