@@ -22,6 +22,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\OskTech.Application\OskTech.Application.csproj" />
+    <ProjectReference Include="..\..\src\OskTech.Domain\OskTech.Domain.csproj" />
   </ItemGroup>
 
 </Project>
