@@ -1,0 +1,56 @@
+@page "/login"
+@using Microsoft.AspNetCore.Components.Authorization
+@inject IAuthService AuthService
+@inject NavigationManager Navigation
+@inject IHttpContextAccessor HttpContextAccessor
+
+<h3>Вход</h3>
+
+<EditForm Model="_model" OnValidSubmit="SubmitAsync">
+    <div>
+        <label>Логин</label>
+        <InputText @bind-Value="_model.Login" class="form-control" />
+    </div>
+    <div>
+        <label>Пароль</label>
+        <InputText @bind-Value="_model.Password" type="password" class="form-control" />
+    </div>
+    @if (!string.IsNullOrEmpty(_error))
+    {
+        <p class="text-danger">@_error</p>
+    }
+    <button type="submit" class="btn btn-primary">Войти</button>
+</EditForm>
+
+<p><a href="register">Регистрация</a></p>
+
+@code {
+    private readonly LoginModel _model = new();
+    private string? _error;
+
+    private async Task SubmitAsync()
+    {
+        _error = null;
+        var context = HttpContextAccessor.HttpContext;
+        if (context is null)
+            return;
+
+        try
+        {
+            var deviceId = Auth.AuthExtensions.GetOrCreateDeviceId(context);
+            var result = await AuthService.LoginAsync(_model.Login, _model.Password, deviceId, context.RequestAborted);
+            await Auth.AuthExtensions.SignInAsync(context, result, deviceId);
+            Navigation.NavigateTo("/cabinet", true);
+        }
+        catch (Exception ex)
+        {
+            _error = ex.Message;
+        }
+    }
+
+    private sealed class LoginModel
+    {
+        public string Login { get; set; } = string.Empty;
+        public string Password { get; set; } = string.Empty;
+    }
+}

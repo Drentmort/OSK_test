@@ -1,0 +1,102 @@
+@page "/cabinet"
+@attribute [Microsoft.AspNetCore.Authorization.Authorize]
+@using System.Security.Claims
+@inject IUserTextService UserTextService
+@inject IAuthService AuthService
+@inject NavigationManager Navigation
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject IHttpContextAccessor HttpContextAccessor
+
+<h3>Личный кабинет</h3>
+
+<textarea @bind="_content" rows="12" class="form-control" style="width:100%;margin-bottom:1rem;"></textarea>
+
+@if (!string.IsNullOrEmpty(_message))
+{
+    <p>@_message</p>
+}
+
+<div style="display:flex;gap:0.5rem;">
+    <button class="btn btn-primary" @onclick="SaveAsync" disabled="@(_busy)">Сохранить</button>
+    <button class="btn btn-secondary" @onclick="LogoutAllAsync" disabled="@(_busy)">Выйти со всех устройств</button>
+    <button class="btn btn-outline-secondary" @onclick="LogoutAsync" disabled="@(_busy)">Выйти</button>
+</div>
+
+@code {
+    private string _content = string.Empty;
+    private string? _message;
+    private bool _busy;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var userId = await GetUserIdAsync();
+        if (userId is null)
+            return;
+
+        _content = await UserTextService.GetTextAsync(userId.Value, CancellationToken.None);
+    }
+
+    private async Task SaveAsync()
+    {
+        _busy = true;
+        _message = null;
+        try
+        {
+            var userId = await GetUserIdAsync();
+            if (userId is null)
+                return;
+
+            await UserTextService.SaveTextAsync(userId.Value, _content, CancellationToken.None);
+            _message = "Сохранено.";
+        }
+        catch (Exception ex)
+        {
+            _message = ex.Message;
+        }
+        finally
+        {
+            _busy = false;
+        }
+    }
+
+    private async Task LogoutAllAsync()
+    {
+        _busy = true;
+        try
+        {
+            var userId = await GetUserIdAsync();
+            var context = HttpContextAccessor.HttpContext;
+            if (userId is null || context is null)
+                return;
+
+            await AuthService.LogoutAllDevicesAsync(userId.Value, context.RequestAborted);
+            await Auth.AuthExtensions.SignOutAsync(context);
+            Navigation.NavigateTo("/login", true);
+        }
+        finally
+        {
+            _busy = false;
+        }
+    }
+
+    private async Task LogoutAsync()
+    {
+        var userId = await GetUserIdAsync();
+        var context = HttpContextAccessor.HttpContext;
+        if (userId is null || context is null)
+            return;
+
+        var deviceId = Auth.AuthExtensions.GetDeviceId((await AuthenticationStateProvider.GetAuthenticationStateAsync()).User)
+            ?? Auth.AuthExtensions.GetOrCreateDeviceId(context);
+
+        await AuthService.LogoutAsync(userId.Value, deviceId, context.RequestAborted);
+        await Auth.AuthExtensions.SignOutAsync(context);
+        Navigation.NavigateTo("/login", true);
+    }
+
+    private async Task<Guid?> GetUserIdAsync()
+    {
+        var state = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        return Auth.AuthExtensions.GetUserId(state.User);
+    }
+}

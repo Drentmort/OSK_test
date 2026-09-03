@@ -1,39 +1,33 @@
 # OSK Tech
 
-Тестовое задание: Blazor Server + ASP.NET Core 8 + PostgreSQL + Redis.
+Blazor Server + ASP.NET Core 8 + PostgreSQL + Redis. Регистрация, вход, личный кабинет с текстом, Outbox-синхронизация в Redis, выход со всех устройств, авто-разлогин после 24ч неактивности.
+
+## Запуск
+
+```bash
+docker compose up -d
+dotnet tool restore
+dotnet run --project src/OskTech.Migrator
+dotnet run --project src/OskTech.Host
+```
+
+Приложение: https://localhost:5001 (см. launchSettings)
+
+## Тесты
+
+```bash
+dotnet test
+```
+
+Integration-тесты используют Testcontainers (нужен Docker).
 
 ## Структура
 
 ```
-src/
-  OskTech.Domain/           — сущности и доменная логика
-  OskTech.Application/      — команды, запросы, интерфейсы
-  OskTech.Infrastructure/   — EF Core, Redis, Outbox, Auth
-  OskTech.Host/             — Blazor Server UI
-  OskTech.Migrator/         — применение миграций БД
-tests/
-  OskTech.UnitTests/
-  OskTech.IntegrationTests/
-docs/diagrams/              — архитектурные диаграммы
+src/OskTech.Domain/           — сущности
+src/OskTech.Application/      — интерфейсы, options
+src/OskTech.Infrastructure/   — EF Core, Redis, Outbox, сервисы
+src/OskTech.Host/             — Blazor UI
+src/OskTech.Migrator/         — миграции БД
+docs/diagrams/                — архитектурные диаграммы
 ```
-
-## Требования
-
-- .NET 8 SDK
-- Docker (PostgreSQL, Redis)
-
-## Запуск инфраструктуры
-
-```bash
-docker compose up -d
-```
-
-## Сборка
-
-```bash
-dotnet build OskTech.sln
-```
-
-## Диаграммы
-
-См. [docs/diagrams](docs/diagrams/README.md).
